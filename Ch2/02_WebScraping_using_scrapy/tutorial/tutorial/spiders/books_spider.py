@@ -24,8 +24,7 @@ class BookSpider(scrapy.Spider):
             yield scrapy.Request(book_url, callback=self.parse_book,
                                  cb_kwargs=dict(cat_name=cat_name))
 
-        next_button = response.css(".next a")
-        if next_button:
+        if next_button := response.css(".next a"):
             next_url = next_button.attrib["href"]
             next_url = response.urljoin(next_url)
             yield scrapy.Request(next_url,
