@@ -5,6 +5,7 @@ from word2vec_twitter model
 Author: Anuj Gupta
 '''
 
+
 '''
 functionality:
 
@@ -36,7 +37,7 @@ from nltk.tokenize import TweetTokenizer
 # Global
 
 PunctChars = r'''[`'“".?!,:;]'''
-Punct = '%s+' % PunctChars
+Punct = f'{PunctChars}+'
 Entity = '&(amp|lt|gt|quot);'
 printable = set(string.printable)
 
@@ -44,17 +45,17 @@ printable = set(string.printable)
 
 def regex_or(*items):
 	r = '|'.join(items)
-	r = '(' + r + ')'
+	r = f'({r})'
 	return r
 
 def pos_lookahead(r):
-	return '(?=' + r + ')'
+	return f'(?={r})'
 
 def neg_lookahead(r):
-	return '(?!' + r + ')'
+	return f'(?!{r})'
 
 def optional(r):
-	return '(%s)?' % r
+	return f'({r})?'
 
 def trim(transient_tweet_text):
 
@@ -91,11 +92,10 @@ def remove_spl_words(transient_tweet_text):
 	return transient_tweet_text
 
 def strip_unicode(transient_tweet_text):
-    '''
+	'''
     Strip all unicode characters from a tweet
     '''
-    tweet = ''.join(i for i in transient_tweet_text if ord(i)<128)
-    return tweet 
+	return ''.join(i for i in transient_tweet_text if ord(i)<128) 
 
 def process_URLs(transient_tweet_text):
 	'''
@@ -105,14 +105,14 @@ def process_URLs(transient_tweet_text):
 	CommonTLDs = regex_or('com','co\\.uk','org','net','info','ca','biz','info','edu','in','au')
 	UrlStart2 = r'[a-z0-9\.-]+?' + r'\.' + CommonTLDs + pos_lookahead(r'[/ \W\b]')
 	UrlBody = r'[^ \t\r\n<>]*?'  # * not + for case of:  "go to bla.com." -- don't want period
-	UrlExtraCrapBeforeEnd = '%s+?' % regex_or(PunctChars, Entity)
+	UrlExtraCrapBeforeEnd = f'{regex_or(PunctChars, Entity)}+?'
 	UrlEnd = regex_or( r'\.\.+', r'[<>]', r'\s', '$')
 	Url = 	(optional(r'\b') + 
-    		regex_or(UrlStart1, UrlStart2) + 
-    		UrlBody + 
-    pos_lookahead( optional(UrlExtraCrapBeforeEnd) + UrlEnd))
+			regex_or(UrlStart1, UrlStart2) + 
+			UrlBody + 
+	pos_lookahead( optional(UrlExtraCrapBeforeEnd) + UrlEnd))
 
-	Url_RE = re.compile("(%s)" % Url, re.U|re.I)
+	Url_RE = re.compile(f"({Url})", re.U|re.I)
 	transient_tweet_text = re.sub(Url_RE, " constanturl ", transient_tweet_text)
 
 	# Fix to handle unicodes in URL.
@@ -128,7 +128,7 @@ def process_Websites(transient_tweet_text):
 	CommonTLDs = regex_or('com','co\\.uk','org','net','info','ca','biz','info','edu','in','au')
 	sep = r'[.]'
 	website_regex = r'(?<!#)?(\b)?[a-zA-Z0-9.]+' + sep + CommonTLDs
-	website_RE = re.compile("(%s)" % website_regex, re.U|re.I)
+	website_RE = re.compile(f"({website_regex})", re.U|re.I)
 	transient_tweet_text = re.sub(website_RE, ' constantwebsite ', transient_tweet_text)
 
 	return transient_tweet_text
@@ -320,19 +320,17 @@ def remove_spl_words(transient_tweet_text):
 	return transient_tweet_text
 
 def remove_emoji(transient_tweet_text):
-    '''
+	'''
     replace emoji with the respective emotion
     '''
-    tweet_tokenizer = TweetTokenizer()
-    tokenized_tweet = tweet_tokenizer.tokenize(transient_tweet_text)
-    emojis_present = demoji.findall(transient_tweet_text)
-    tweet_no_emoji=''
-    for i,s in enumerate(tokenized_tweet):
-        if s in emojis_present.keys():
-            tweet_no_emoji = tweet_no_emoji + ' ' + emojis_present[s]
-        else:
-            tweet_no_emoji = tweet_no_emoji + ' ' + s
-    return tweet_no_emoji
+	tweet_tokenizer = TweetTokenizer()
+	tokenized_tweet = tweet_tokenizer.tokenize(transient_tweet_text)
+	emojis_present = demoji.findall(transient_tweet_text)
+	tweet_no_emoji=''
+	for s in tokenized_tweet:
+		tweet_no_emoji = (f'{tweet_no_emoji} {emojis_present[s]}'
+		                  if s in emojis_present.keys() else f'{tweet_no_emoji} {s}')
+	return tweet_no_emoji
 
 def deEmojify(transient_tweet_text):
     '''
